@@ -17,14 +17,25 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          # Go to the private server deployment folder
+          # Load Node.js environment variables (fixes npm/pm2 command not found)
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          export PATH=$PATH:/usr/local/bin:/usr/bin:/opt/node/bin
+          
+          # Ensure directory exists and is a git repository
+          mkdir -p /var/wwwapp/pgvault
           cd /var/wwwapp/pgvault
           
-          # Pull latest submodule (Core code) from GitHub
-          git submodule update --remote --merge
+          if [ ! -d ".git" ]; then
+            echo "Initializing repository..."
+            git clone https://github.com/Haris-khan-Durrani/PGVault-Core.git .
+          else
+            echo "Pulling latest changes..."
+            git pull origin main
+          fi
           
           # Build Backend
-          cd core/backend
+          cd backend
           npm install
           npx prisma generate
           # Start or Restart Backend (Assuming it's named pgvault-backend in PM2)
