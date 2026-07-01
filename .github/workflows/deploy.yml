@@ -1,0 +1,51 @@
+name: Deploy PGVault
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to Ubuntu Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          # Go to the private server deployment folder
+          cd /var/wwwapp/pgvault
+          
+          # Pull latest submodule (Core code) from GitHub
+          git submodule update --remote --merge
+          
+          # Build Backend
+          cd core/backend
+          npm install
+          npx prisma generate
+          # Start or Restart Backend (Assuming it's named pgvault-backend in PM2)
+          pm2 describe pgvault-backend > /dev/null
+          if [ $? -eq 0 ]; then
+            pm2 restart pgvault-backend
+          else
+            pm2 start server.js --name pgvault-backend
+          fi
+          
+          # Build Frontend
+          cd ../frontend
+          npm install
+          npm run build
+          # Start or Restart Frontend (Assuming it's named pgvault-frontend in PM2)
+          pm2 describe pgvault-frontend > /dev/null
+          if [ $? -eq 0 ]; then
+            pm2 restart pgvault-frontend
+          else
+            pm2 start npm --name pgvault-frontend -- run start
+          fi
+          
+          # Save PM2 state
+          pm2 save
