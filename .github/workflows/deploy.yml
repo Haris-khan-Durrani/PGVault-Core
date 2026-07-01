@@ -17,10 +17,17 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          # Load Node.js environment variables (fixes npm/pm2 command not found)
+          # Try to load all possible profile files to find npm/pm2
+          source ~/.bashrc 2>/dev/null || true
+          source ~/.bash_profile 2>/dev/null || true
+          source ~/.profile 2>/dev/null || true
+          
+          # Force load NVM if it exists
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          export PATH=$PATH:/usr/local/bin:/usr/bin:/opt/node/bin
+          
+          # Add standard paths
+          export PATH=$PATH:/usr/local/bin:/usr/bin:/opt/node/bin:~/.npm-global/bin
           
           # Ensure directory exists and is a git repository
           mkdir -p /var/wwwapp/pgvault
