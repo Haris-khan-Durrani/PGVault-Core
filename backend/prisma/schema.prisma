@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int             @id @default(autoincrement())
+  username        String          @unique
+  email           String          @unique
+  phone           String?
+  password_hash   String
+  twoFactorMethod String          @default("none") // "none", "sms", "email"
+  currentOtp      String?
+  otpExpiresAt    DateTime?
+  otpVerifiedAt   DateTime?
+  createdAt       DateTime        @default(now())
+  
+  settings        Settings?
+  backups         Backup[]
+  backupSecrets   BackupSecret[]
+  apiTokens       ApiToken[]
+}
+
+model ApiToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  name      String
+  token     String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now())
+  lastUsedAt DateTime?
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Settings {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @unique
+  pgHost               String?
+  pgPort               String?
+  pgUser               String?
+  pgDatabase           String?
+  pgPasswordEnc        String?  @db.Text
+  appName              String?
+  driveServiceAccountEnc String?  @db.Text // Deprecated, keeping for backwards compatibility initially
+  driveFolderId          String?
+  driveClientId          String?
+  driveClientSecretEnc   String?  @db.Text
+  driveRefreshTokenEnc   String?  @db.Text
+  cronSchedule           String?
+  
+  // SMTP Settings
+  smtpHost             String?
+  smtpPort             String?
+  smtpUser             String?
+  smtpPassEnc          String?  @db.Text
+  smtpTested           Boolean  @default(false)
+  
+  // SMS Settings
+  smsApiKey            String?  @default("C20046376a3bb1a30d84c3.30473810")
+  smsSenderId          String?  @default("EBMS")
+  smsApiUrl            String?  @db.Text
+  smsApiMethod         String?  @default("GET")
+  smsApiHeaders        String?  @db.Text
+  smsApiBody           String?  @db.Text
+  smsTested            Boolean  @default(false)
+  
+  // Destination Toggles
+  destLocal            Boolean  @default(true)
+  destGoogleDrive      Boolean  @default(false)
+  destS3               Boolean  @default(false)
+  
+  // Retention Policy
+  retentionDays        Int      @default(0) // 0 means keep forever
+  
+  // Amazon S3 Settings
+  s3AccessKey          String?
+  s3SecretKeyEnc       String?  @db.Text
+  s3Region             String?
+  s3Bucket             String?
+  s3Endpoint           String?
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Backup {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  driveFileId   String?
+  driveFilename String?
+  localBackupPath String?
+  s3Key           String?
+  fileSizeBytes   Float    @default(0)
+  status        String   @default("pending") // pending, running, done, failed
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  backupSecret  BackupSecret?
+}
+
+model BackupSecret {
+  id             Int    @id @default(autoincrement())
+  backupId       Int    @unique
+  userId         Int
+  zipPasswordEnc String @db.Text
+  iv             String @db.VarChar(32)
+  authTag        String @db.VarChar(32)
+  
+  backup         Backup @relation(fields: [backupId], references: [id], onDelete: Cascade)
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
