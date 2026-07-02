@@ -79,7 +79,10 @@ export default function Settings() {
   const [smtpTesting, setSmtpTesting] = useState(false);
   const [smsTesting, setSmsTesting] = useState(false);
 
+  const [origin, setOrigin] = useState('http://localhost:3000');
+
   useEffect(() => {
+    setOrigin(window.location.origin);
     fetchApi('/settings').then(data => {
       if (data.pgHost) setPgHost(data.pgHost);
       if (data.pgPort) setPgPort(data.pgPort);
@@ -417,6 +420,17 @@ export default function Settings() {
                        <div className="md:col-span-2">
                          <label className="block text-sm text-gray-400 mb-1">Target Folder ID</label>
                          <input type="text" value={driveFolderId} onChange={e => setDriveFolderId(e.target.value)} className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none text-gray-200 transition-colors" placeholder="18dP949jKL9O..." />
+                       </div>
+
+                       <div className="md:col-span-2 bg-blue-900/20 border border-blue-800/30 rounded-lg p-4 mt-2">
+                         <h4 className="text-blue-400 text-sm font-medium mb-1 flex items-center gap-2">
+                           <Info className="w-4 h-4" />
+                           Google Cloud Console Setup
+                         </h4>
+                         <p className="text-gray-400 text-sm mb-2">When creating your OAuth Client ID in Google Cloud, add exactly this URL to the <strong>Authorized redirect URIs</strong> section:</p>
+                         <code className="block bg-gray-950 px-3 py-2 rounded border border-gray-800 text-blue-300 font-mono text-sm break-all select-all">
+                           {origin}/dashboard/settings/google-callback
+                         </code>
                        </div>
                      </div>
                      
