@@ -18,6 +18,7 @@ export default function ApiAccessPage() {
   const [newKeyName, setNewKeyName] = useState('');
   const [newlyGeneratedToken, setNewlyGeneratedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState('http://localhost:3000');
 
   const loadKeys = async () => {
     try {
@@ -31,6 +32,7 @@ export default function ApiAccessPage() {
   };
 
   useEffect(() => {
+    setOrigin(window.location.origin);
     loadKeys();
   }, []);
 
@@ -81,7 +83,7 @@ export default function ApiAccessPage() {
           <p className="text-gray-400 mt-2">Generate and manage API keys for external integrations.</p>
         </div>
         <a 
-          href="http://localhost:3001/api-docs" 
+          href="/api-docs" 
           target="_blank" 
           rel="noreferrer"
           className="bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm"
@@ -219,7 +221,7 @@ export default function ApiAccessPage() {
         </p>
         <div className="bg-gray-950 p-5 rounded-xl border border-gray-800 relative shadow-inner">
           <pre className="text-gray-300 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
-<span className="text-pink-400">curl</span> -X POST http://localhost:3001/api/v1/backups/trigger \
+<span className="text-pink-400">curl</span> -X POST {origin}/api/v1/backups/trigger \
   -H <span className="text-green-300">"Authorization: Bearer pgv_YOUR_API_KEY_HERE"</span>
           </pre>
         </div>
