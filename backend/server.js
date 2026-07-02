@@ -116,5 +116,19 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  
+  // Clean up any orphaned pending backups (e.g., if server crashed during backup)
+  try {
+    const updatedCount = await prisma.backup.updateMany({
+      where: { status: 'pending' },
+      data: { status: 'failed' }
+    });
+    if (updatedCount.count > 0) {
+      console.log(`Marked ${updatedCount.count} orphaned pending backups as failed.`);
+    }
+  } catch (error) {
+    console.error('Failed to clean up orphaned backups:', error);
+  }
+
   await startScheduler();
 });
