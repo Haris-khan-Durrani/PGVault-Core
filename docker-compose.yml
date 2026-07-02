@@ -16,7 +16,7 @@ services:
       - pgvault-network
 
   backend:
-    build: ./backend
+    image: hariskhandurrani/pgvault-backend:latest
     container_name: pgvault-backend
     restart: always
     ports:
@@ -33,7 +33,7 @@ services:
       - pgvault-network
 
   frontend:
-    build: ./frontend
+    image: hariskhandurrani/pgvault-frontend:latest
     container_name: pgvault-frontend
     restart: always
     ports:
