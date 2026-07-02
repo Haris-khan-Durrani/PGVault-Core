@@ -19,6 +19,8 @@ services:
     image: hariskhandurrani/pgvault-backend:latest
     container_name: pgvault-backend
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "3001:3001"
     environment:
