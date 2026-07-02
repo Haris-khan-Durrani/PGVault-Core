@@ -14,8 +14,13 @@ function requireAuth(req, res, next) {
 
 // Ensure the redirect URI matches exactly what's registered in Google Cloud Console
 const getRedirectUri = (req) => {
-  // Use frontend origin if it's sent, else fallback
-  const origin = req.headers.origin || 'http://localhost:4005';
+  // Use frontend origin if sent in query, origin header, or referer, else fallback
+  let origin = req.query.origin || req.headers.origin;
+  if (!origin && req.headers.referer) {
+    const url = new URL(req.headers.referer);
+    origin = url.origin;
+  }
+  origin = origin || 'http://localhost:3000';
   return `${origin}/dashboard/settings/google-callback`; 
 };
 
