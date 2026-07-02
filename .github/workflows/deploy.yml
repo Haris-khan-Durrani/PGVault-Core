@@ -41,7 +41,8 @@ jobs:
             git clone https://github.com/Haris-khan-Durrani/PGVault-Core.git .
           else
             echo "Pulling latest changes..."
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
           fi
           
           # Build Backend
