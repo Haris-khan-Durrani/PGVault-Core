@@ -65,112 +65,117 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', async (err, user, info) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!user) return res.status(401).json({ error: info.message || 'Invalid username or password' });
-
-    // Fetch fresh user data to get 2FA method
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, include: { settings: true } });
-
-    if (dbUser.twoFactorMethod && dbUser.twoFactorMethod !== 'none') {
-      // Check for 48 hour grace period
-      if (dbUser.otpVerifiedAt) {
-        const hoursSinceVerified = (Date.now() - new Date(dbUser.otpVerifiedAt).getTime()) / (1000 * 60 * 60);
-        if (hoursSinceVerified < 48) {
-          return req.logIn(dbUser, (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            return res.json({ message: 'Logged in successfully (2FA bypassed)', user: { id: req.user.id, username: req.user.username } });
-          });
-        }
-      }
-
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-      await prisma.user.update({
-        where: { id: dbUser.id },
-        data: { currentOtp: otp, otpExpiresAt: expiresAt }
-      });
-
-      const settings = dbUser.settings || {};
-
-      try {
-        if (dbUser.twoFactorMethod === 'email') {
-          if (!settings.smtpHost || !settings.smtpUser || !settings.smtpPassEnc) {
-            throw new Error('SMTP settings are not configured');
-          }
-          const transporter = nodemailer.createTransport({
-            host: settings.smtpHost,
-            port: parseInt(settings.smtpPort) || 587,
-            secure: parseInt(settings.smtpPort) === 465,
-            auth: {
-              user: settings.smtpUser,
-              pass: cryptoService.decryptString(settings.smtpPassEnc)
-            }
-          });
-          await transporter.sendMail({
-            from: settings.smtpUser,
-            to: dbUser.email,
-            subject: 'Your PGVault Login Code',
-            text: `Your login code is: ${otp}`
-          });
-        } else if (dbUser.twoFactorMethod === 'sms') {
-          if (!dbUser.phone) throw new Error('User phone number not configured');
-          if (settings.smsApiUrl) {
-            const formattedPhone = encodeURIComponent(dbUser.phone);
-            const formattedMessage = encodeURIComponent(`Your PGVault login code is: ${otp}`);
-            let url = settings.smsApiUrl.replace(/\{\{phone\}\}/g, formattedPhone).replace(/\{\{msg\}\}/g, formattedMessage);
-            const method = (settings.smsApiMethod || 'GET').toUpperCase();
-            const fetchOptions = { method };
-
-            if (settings.smsApiHeaders) {
-              try { fetchOptions.headers = JSON.parse(settings.smsApiHeaders); } catch(e) { console.warn('Failed to parse SMS API Headers:', e); }
-            }
-            if (settings.smsApiBody && method !== 'GET') {
-              const safeMsg = `Your PGVault login code is: ${otp}`.replace(/"/g, '\\"').replace(/\n/g, '\\n');
-              fetchOptions.body = settings.smsApiBody.replace(/\{\{phone\}\}/g, dbUser.phone).replace(/\{\{msg\}\}/g, safeMsg);
-              if (!fetchOptions.headers) fetchOptions.headers = {};
-              if (!fetchOptions.headers['Content-Type']) fetchOptions.headers['Content-Type'] = 'application/json';
-            }
-
-            const smsRes = await fetch(url, fetchOptions);
-            if (!smsRes.ok) throw new Error(`SMS API failed with status ${smsRes.status}`);
-            const responseText = await smsRes.text();
-          } else if (settings.smsApiKey && settings.smsSenderId) {
-            const apiKey = settings.smsApiKey;
-            const senderId = settings.smsSenderId;
-            const msg = encodeURIComponent(`Your PGVault login code is: ${otp}`);
-            const url = `https://elitbuzz-me.com/sms/smsapi?api_key=${apiKey}&type=text&contacts=${dbUser.phone}&senderid=${senderId}&msg=${msg}`;
-            
-            const smsRes = await fetch(url);
-            const responseText = await smsRes.text();
-            if (!smsRes.ok) throw new Error(`SMS API failed with status ${smsRes.status}`);
-            
-            if (responseText.trim() === '1003') {
-              throw new Error('SMS API returned error 1003 (Invalid API Key, Sender ID, or Insufficient Balance)');
-            } else if (responseText.trim().length < 10 && !responseText.includes('Success') && isNaN(Number(responseText)) === false && Number(responseText) >= 1000) {
-               throw new Error(`SMS API returned error code: ${responseText}`);
-            }
-          } else {
-            throw new Error('SMS API configuration is incomplete.');
-          }
-        }
-      } catch (err) {
-        console.error('Failed to send 2FA OTP:', err);
-        return res.status(500).json({ error: `Failed to send OTP via ${dbUser.twoFactorMethod}: ${err.message}` });
-      }
-
-      return res.json({ 
-        require2fa: true, 
-        method: dbUser.twoFactorMethod, 
-        userId: dbUser.id,
-        message: `OTP sent via ${dbUser.twoFactorMethod}`
-      });
-    }
-
-    req.logIn(dbUser, (err) => {
+    try {
       if (err) return res.status(500).json({ error: err.message });
-      return res.json({ message: 'Logged in successfully', user: { id: req.user.id, username: req.user.username } });
-    });
+      if (!user) return res.status(401).json({ error: info.message || 'Invalid username or password' });
+
+      // Fetch fresh user data to get 2FA method
+      const dbUser = await prisma.user.findUnique({ where: { id: user.id }, include: { settings: true } });
+
+      if (dbUser.twoFactorMethod && dbUser.twoFactorMethod !== 'none') {
+        // Check for 48 hour grace period
+        if (dbUser.otpVerifiedAt) {
+          const hoursSinceVerified = (Date.now() - new Date(dbUser.otpVerifiedAt).getTime()) / (1000 * 60 * 60);
+          if (hoursSinceVerified < 48) {
+            return req.logIn(dbUser, (err) => {
+              if (err) return res.status(500).json({ error: err.message });
+              return res.json({ message: 'Logged in successfully (2FA bypassed)', user: { id: req.user.id, username: req.user.username } });
+            });
+          }
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        await prisma.user.update({
+          where: { id: dbUser.id },
+          data: { currentOtp: otp, otpExpiresAt: expiresAt }
+        });
+
+        const settings = dbUser.settings || {};
+
+        try {
+          if (dbUser.twoFactorMethod === 'email') {
+            if (!settings.smtpHost || !settings.smtpUser || !settings.smtpPassEnc) {
+              throw new Error('SMTP settings are not configured');
+            }
+            const transporter = nodemailer.createTransport({
+              host: settings.smtpHost,
+              port: parseInt(settings.smtpPort) || 587,
+              secure: parseInt(settings.smtpPort) === 465,
+              auth: {
+                user: settings.smtpUser,
+                pass: cryptoService.decryptString(settings.smtpPassEnc)
+              }
+            });
+            await transporter.sendMail({
+              from: settings.smtpUser,
+              to: dbUser.email,
+              subject: 'Your PGVault Login Code',
+              text: `Your login code is: ${otp}`
+            });
+          } else if (dbUser.twoFactorMethod === 'sms') {
+            if (!dbUser.phone) throw new Error('User phone number not configured');
+            if (settings.smsApiUrl) {
+              const formattedPhone = encodeURIComponent(dbUser.phone);
+              const formattedMessage = encodeURIComponent(`Your PGVault login code is: ${otp}`);
+              let url = settings.smsApiUrl.replace(/\{\{phone\}\}/g, formattedPhone).replace(/\{\{msg\}\}/g, formattedMessage);
+              const method = (settings.smsApiMethod || 'GET').toUpperCase();
+              const fetchOptions = { method };
+
+              if (settings.smsApiHeaders) {
+                try { fetchOptions.headers = JSON.parse(settings.smsApiHeaders); } catch(e) { console.warn('Failed to parse SMS API Headers:', e); }
+              }
+              if (settings.smsApiBody && method !== 'GET') {
+                const safeMsg = `Your PGVault login code is: ${otp}`.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+                fetchOptions.body = settings.smsApiBody.replace(/\{\{phone\}\}/g, dbUser.phone).replace(/\{\{msg\}\}/g, safeMsg);
+                if (!fetchOptions.headers) fetchOptions.headers = {};
+                if (!fetchOptions.headers['Content-Type']) fetchOptions.headers['Content-Type'] = 'application/json';
+              }
+
+              const smsRes = await fetch(url, fetchOptions);
+              if (!smsRes.ok) throw new Error(`SMS API failed with status ${smsRes.status}`);
+              const responseText = await smsRes.text();
+            } else if (settings.smsApiKey && settings.smsSenderId) {
+              const apiKey = settings.smsApiKey;
+              const senderId = settings.smsSenderId;
+              const msg = encodeURIComponent(`Your PGVault login code is: ${otp}`);
+              const url = `https://elitbuzz-me.com/sms/smsapi?api_key=${apiKey}&type=text&contacts=${dbUser.phone}&senderid=${senderId}&msg=${msg}`;
+              
+              const smsRes = await fetch(url);
+              const responseText = await smsRes.text();
+              if (!smsRes.ok) throw new Error(`SMS API failed with status ${smsRes.status}`);
+              
+              if (responseText.trim() === '1003') {
+                throw new Error('SMS API returned error 1003 (Invalid API Key, Sender ID, or Insufficient Balance)');
+              } else if (responseText.trim().length < 10 && !responseText.includes('Success') && isNaN(Number(responseText)) === false && Number(responseText) >= 1000) {
+                 throw new Error(`SMS API returned error code: ${responseText}`);
+              }
+            } else {
+              throw new Error('SMS API configuration is incomplete.');
+            }
+          }
+        } catch (err) {
+          console.error('Failed to send 2FA OTP:', err);
+          return res.status(500).json({ error: `Failed to send OTP via ${dbUser.twoFactorMethod}: ${err.message}` });
+        }
+
+        return res.json({ 
+          require2fa: true, 
+          method: dbUser.twoFactorMethod, 
+          userId: dbUser.id,
+          message: `OTP sent via ${dbUser.twoFactorMethod}`
+        });
+      }
+
+      req.logIn(dbUser, (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        return res.json({ message: 'Logged in successfully', user: { id: req.user.id, username: req.user.username } });
+      });
+    } catch (e) {
+      console.error('Unhandled error in /login:', e);
+      return res.status(500).json({ error: 'Internal Server Error: ' + e.message });
+    }
   })(req, res, next);
 });
 
