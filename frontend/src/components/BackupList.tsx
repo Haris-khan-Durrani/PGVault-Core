@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { fetchApi } from '@/utils/api';
-import { Key, HardDrive, Cloud, Copy, Trash2, RefreshCcw, Download, Server, CheckCircle, XCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { Key, HardDrive, Cloud, Copy, Trash2, RefreshCcw, Download, Server, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, Database } from 'lucide-react';
 
 type Backup = {
   id: number;
