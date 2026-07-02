@@ -43,7 +43,7 @@ export default function BackupList({ backups, onRefresh }: { backups: Backup[], 
 
   const handleDownloadLocal = async (backupId: number, filename: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/backup/${backupId}/download`, {
+      const response = await fetch(`${API_URL}/backup/${backupId}/download`, {
         method: 'GET', credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to download file.');
