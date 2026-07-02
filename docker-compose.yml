@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pgvault-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pgvault_root_password
+      MYSQL_DATABASE: pgvault
+      MYSQL_USER: pgvault
+      MYSQL_PASSWORD: pgvault_password
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - pgvault-network
+
+  backend:
+    build: ./backend
+    container_name: pgvault-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=mysql://pgvault:pgvault_password@mysql:3306/pgvault
+      - PORT=3001
+      - SESSION_SECRET=change_me_to_a_random_secret_string
+    volumes:
+      - ./data/backups:/app/backups
+    depends_on:
+      - mysql
+    networks:
+      - pgvault-network
+
+  frontend:
+    build: ./frontend
+    container_name: pgvault-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+      - BACKEND_URL=http://backend:3001
+    depends_on:
+      - backend
+    networks:
+      - pgvault-network
+
+networks:
+  pgvault-network:
+    driver: bridge
