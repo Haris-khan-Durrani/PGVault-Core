@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const backendUrl = process.env.BACKEND_URL || 'http://backend:3001';
 
 const nextConfig: NextConfig = {
-  skipTrailingSlashRedirect: true,
+  trailingSlash: true,
   async rewrites() {
     return [
       {
