@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
-import { Key, Terminal, Book, Copy, CheckCircle, Trash2, ShieldAlert, Plus } from 'lucide-react';
+import { Key, Terminal, Book, Copy, CheckCircle, Trash2, ShieldAlert, Plus, Server, Database, Lock, RotateCcw, Settings } from 'lucide-react';
 
 type ApiKey = {
   id: number;
@@ -82,15 +82,6 @@ export default function ApiAccessPage() {
           </h2>
           <p className="text-gray-400 mt-2">Generate and manage API keys for external integrations.</p>
         </div>
-        <a 
-          href="/api-docs/" 
-          target="_blank" 
-          rel="noreferrer"
-          className="bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm"
-        >
-          <Book className="w-4 h-4 text-purple-400" />
-          View Swagger Docs
-        </a>
       </div>
 
       {/* New Key Alert */}
@@ -224,6 +215,68 @@ export default function ApiAccessPage() {
 <span className="text-pink-400">curl</span> -X POST {origin}/api/v1/backups/trigger \
   -H <span className="text-green-300">"Authorization: Bearer pgv_YOUR_API_KEY_HERE"</span>
           </pre>
+        </div>
+      </div>
+
+      {/* API Reference */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-md overflow-hidden">
+        <div className="p-6 border-b border-gray-800 bg-gray-900/50">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Book className="w-5 h-5 text-purple-400" />
+            API Reference
+          </h3>
+          <p className="text-gray-400 mt-2 text-sm">Comprehensive documentation for all available v1 API endpoints.</p>
+        </div>
+        <div className="divide-y divide-gray-800">
+          
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded">GET</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/backups</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Retrieve a list of your 50 most recent backups, including download URLs.</p>
+          </div>
+
+          <div className="p-6 bg-gray-800/10">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded">POST</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/backups/trigger</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Trigger a manual database backup. Runs asynchronously in the background.</p>
+          </div>
+
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded">GET</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/backups/&#123;id&#125;/password</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Retrieve the decrypted ZIP password for a specific backup ID.</p>
+          </div>
+
+          <div className="p-6 bg-gray-800/10">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded">POST</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/backups/&#123;id&#125;/restore</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Trigger a database restore from a specific backup ID. Note: This drops all current tables.</p>
+          </div>
+
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-red-500/10 text-red-400 text-xs font-bold rounded">DELETE</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/backups/&#123;id&#125;</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Permanently delete a backup record and its associated local ZIP file.</p>
+          </div>
+
+          <div className="p-6 bg-gray-800/10">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded">GET</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/settings</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Retrieve current database and destination settings (passwords and secrets are redacted).</p>
+          </div>
+
         </div>
       </div>
 
