@@ -83,7 +83,7 @@ export default function ApiAccessPage() {
           <p className="text-gray-400 mt-2">Generate and manage API keys for external integrations.</p>
         </div>
         <a 
-          href="/api-docs" 
+          href="/api-docs/" 
           target="_blank" 
           rel="noreferrer"
           className="bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm"
