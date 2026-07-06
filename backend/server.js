@@ -99,6 +99,7 @@ const backupRoutes = require('./routes/backup');
 const profileRoutes = require('./routes/profile');
 const apiKeysRoutes = require('./routes/apiKeys');
 const externalApiRoutes = require('./routes/externalApi');
+const systemRoutes = require('./routes/system');
 const { swaggerUi, specs } = require('./swagger');
 
 app.use('/api/auth', authRoutes);
@@ -106,6 +107,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/apikeys', apiKeysRoutes);
+app.use('/api/system', systemRoutes);
 
 // External API and Swagger Docs
 app.use('/api/v1', externalApiRoutes);

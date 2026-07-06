@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import BackupList from '@/components/BackupList';
 import Analytics from '@/components/Analytics';
+import ServerHealth from '@/components/ServerHealth';
 import { Database, PlayCircle, Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -74,6 +75,11 @@ export default function Dashboard() {
             </>
           )}
         </button>
+      </div>
+
+      {/* Server Health Section */}
+      <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <ServerHealth />
       </div>
 
       {/* Analytics Section */}

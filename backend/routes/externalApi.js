@@ -282,4 +282,68 @@ router.get('/settings', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/v1/system/health:
+ *   get:
+ *     summary: Retrieve detailed server and database health statistics
+ *     tags: [System]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: System health statistics
+ */
+router.get('/system/health', async (req, res) => {
+  try {
+    const os = require('os');
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+    const memUsagePercent = ((usedMem / totalMem) * 100).toFixed(1);
+
+    const cpus = os.cpus();
+    const loadAvg = os.loadavg();
+    const cpuUsagePercent = ((loadAvg[0] / cpus.length) * 100).toFixed(1);
+
+    let dbStatus = 'healthy';
+    let dbLatency = 0;
+    try {
+      const start = Date.now();
+      await prisma.$queryRaw`SELECT 1`;
+      dbLatency = Date.now() - start;
+    } catch (e) {
+      dbStatus = 'unhealthy';
+    }
+
+    res.json({
+      status: 'online',
+      system: {
+        uptimeSeconds: Math.floor(os.uptime()),
+        platform: os.platform(),
+        release: os.release(),
+        cpuCores: cpus.length,
+        cpuModel: cpus[0].model,
+        cpuUsagePercent: parseFloat(cpuUsagePercent),
+        memory: {
+          totalBytes: totalMem,
+          freeBytes: freeMem,
+          usedBytes: usedMem,
+          usagePercent: parseFloat(memUsagePercent)
+        }
+      },
+      database: {
+        status: dbStatus,
+        latencyMs: dbLatency
+      },
+      app: {
+        uptimeSeconds: Math.floor(process.uptime()),
+        nodeVersion: process.version
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

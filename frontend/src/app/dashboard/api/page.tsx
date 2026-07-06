@@ -277,6 +277,14 @@ export default function ApiAccessPage() {
             <p className="text-gray-400 text-sm mb-3">Retrieve current database and destination settings (passwords and secrets are redacted).</p>
           </div>
 
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded">GET</span>
+              <code className="text-gray-300 font-mono text-sm">/api/v1/system/health</code>
+            </div>
+            <p className="text-gray-400 text-sm mb-3">Retrieve detailed server health statistics, including CPU load, memory usage, uptime, and database latency.</p>
+          </div>
+
         </div>
       </div>
 
