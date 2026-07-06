@@ -235,6 +235,22 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/backups</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Retrieve a list of your 50 most recent backups, including download URLs.</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (200 OK)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`[
+  {
+    "id": 5,
+    "userId": 1,
+    "status": "completed",
+    "createdAt": "2026-07-02T13:20:21.155Z",
+    "fileSizeBytes": 1504000000,
+    "driveFileUrl": "https://drive.google.com/file/d/1A2B3C.../view",
+    "s3FileUrl": null
+  }
+]`}
+              </pre>
+            </div>
           </div>
 
           <div className="p-6 bg-gray-800/10">
@@ -243,6 +259,15 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/backups/trigger</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Trigger a manual database backup. Runs asynchronously in the background.</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (202 Accepted)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`{
+  "message": "Backup triggered successfully",
+  "backupId": 6
+}`}
+              </pre>
+            </div>
           </div>
 
           <div className="p-6">
@@ -251,6 +276,14 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/backups/&#123;id&#125;/password</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Retrieve the decrypted ZIP password for a specific backup ID.</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (200 OK)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`{
+  "password": "y0ur-s3cr3t-z1p-p4ssw0rd"
+}`}
+              </pre>
+            </div>
           </div>
 
           <div className="p-6 bg-gray-800/10">
@@ -259,6 +292,14 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/backups/&#123;id&#125;/restore</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Trigger a database restore from a specific backup ID. Note: This drops all current tables.</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (202 Accepted)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`{
+  "message": "Restore process triggered"
+}`}
+              </pre>
+            </div>
           </div>
 
           <div className="p-6">
@@ -267,6 +308,15 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/backups/&#123;id&#125;</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Permanently delete a backup record and its associated local ZIP file.</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (200 OK)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`{
+  "success": true,
+  "message": "Backup deleted successfully"
+}`}
+              </pre>
+            </div>
           </div>
 
           <div className="p-6 bg-gray-800/10">
@@ -275,6 +325,20 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/settings</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Retrieve current database and destination settings (passwords and secrets are redacted).</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (200 OK)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`{
+  "id": 1,
+  "pgHost": "172.21.0.3",
+  "pgPort": 5432,
+  "pgUser": "pgvault",
+  "pgDatabase": "whatsapp",
+  "driveEnabled": true,
+  "s3Enabled": false
+}`}
+              </pre>
+            </div>
           </div>
 
           <div className="p-6">
@@ -283,6 +347,28 @@ export default function ApiAccessPage() {
               <code className="text-gray-300 font-mono text-sm">/api/v1/system/health</code>
             </div>
             <p className="text-gray-400 text-sm mb-3">Retrieve detailed server health statistics, including CPU load, memory usage, uptime, and database latency.</p>
+            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 relative shadow-inner mt-3">
+              <span className="absolute top-2 right-3 text-xs text-gray-600 font-mono">Response (200 OK)</span>
+              <pre className="text-gray-400 text-xs font-mono overflow-x-auto">
+{`{
+  "status": "online",
+  "system": {
+    "uptimeSeconds": 1209600,
+    "cpuCores": 8,
+    "cpuUsagePercent": 39.0,
+    "memory": {
+      "totalBytes": 25232932864,
+      "freeBytes": 5879488512,
+      "usagePercent": 76.7
+    }
+  },
+  "database": {
+    "status": "healthy",
+    "latencyMs": 4
+  }
+}`}
+              </pre>
+            </div>
           </div>
 
         </div>
